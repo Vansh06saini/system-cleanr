@@ -27,14 +27,13 @@ public class Main {
                     UserTempCleaner.clean();
                     break;
 
-                case 3:
-                    Cleaner.cleanJunkFiles();
+                    case 3:
+                    junkcleaner.clean();
                     break;
 
-                case 4:
-                    Cleaner.cleanRecycleBin();
+                    case 4:
+                    recyclebincleaner.clean();
                     break;
-
                 case 5:
                     System.out.println("Program Closed.");
                     return;
