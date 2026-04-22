@@ -1,54 +1,46 @@
 import java.io.File;
-public class junkcleaner 
-{
-    static int deletedFiles = 0;
-    static int skippedFiles = 0;
-    static long freedSpace = 0;
 
-    public static void clean() 
-    {
-        System.out.println("Junk File Cleanup Started");
-        String startPath = System.getProperty("user.home");
-        File startFolder = new File(startPath);
-        scanAndClean(startFolder);
-        System.out.println("Files Deleted: " + deletedFiles);
-        System.out.println("Files Skipped: " + skippedFiles);
-        System.out.println("Space Freed: " + (freedSpace / 1024) + " KB");
+public class junkcleaner {
+
+    static File[] temp = new File[20000]; // buffer
+    static int idx = 0;
+
+    public static void clean() {
+
+        idx = 0;
+        scan(new File(System.getProperty("user.home")));
+
+        if (idx == 0) return;
+
+        File[] result = new File[idx];
+        for (int i = 0; i < idx; i++) result[i] = temp[i];
+
+        new FilePreviewFrameArray(result);
     }
-    public static void scanAndClean(File folder) 
-    {
+
+    static void scan(File folder) {
+
         File[] files = folder.listFiles();
         if (files == null) return;
-        for (File file : files) 
-            {
-                String path = file.getAbsolutePath().toLowerCase();
-                if (path.contains("windows") || path.contains("program files")) {
-                continue;
-            }
-            if (file.isDirectory()) 
-            {
-                scanAndClean(file);
-            }
-            else {
-                String name = file.getName().toLowerCase();
-                    boolean isJunk =
-                        name.endsWith(".tmp") ||
-                        name.endsWith(".log") ||
-                        name.endsWith(".cache") ||
-                        name.endsWith(".bak");
-                    if (isJunk) {
-                    try {
-                        long size = file.length();
 
-                        if (file.delete()) {
-                            deletedFiles++;
-                            freedSpace += size;
-                        } else {
-                            skippedFiles++;
-                        }
+        for (File f : files) {
 
-                    } catch (Exception e) {
-                        skippedFiles++;
+            String p = f.getAbsolutePath().toLowerCase();
+
+            if (p.contains("windows") ||
+                p.contains("program files") ||
+                p.contains("programdata")) continue;
+
+            if (f.isDirectory()) {
+                scan(f);
+            } else {
+                String n = f.getName().toLowerCase();
+
+                if (n.endsWith(".tmp") || n.endsWith(".log") ||
+                    n.endsWith(".cache") || n.endsWith(".bak")) {
+
+                    if (idx < temp.length) {
+                        temp[idx++] = f;
                     }
                 }
             }

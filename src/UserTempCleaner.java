@@ -4,46 +4,38 @@ public class UserTempCleaner {
 
     public static void clean() {
 
-        String folderPath = System.getProperty("user.home") + "\\AppData\\Local\\Temp";
+        String path = System.getenv("TEMP");
+        File folder = new File(path);
+        File[] files = folder.listFiles();
+        if (files == null) return;
 
-        File tempFolder = new File(folderPath);
-        File[] fileList = tempFolder.listFiles();
+        int count = 0;
 
-        if (fileList == null) {
-            System.out.println("[ERROR] Unable to access folder.");
-            return;
-        }
-
-        int removedFiles = 0;
-        int skippedFiles = 0;
-        long totalFreedSpace = 0;
-
-        for (File currentFile : fileList) {
-
-            String fileName = currentFile.getName().toLowerCase();
-
-            boolean isTemporary =
-                    fileName.endsWith(".tmp") ||
-                    fileName.endsWith(".temp") ||
-                    fileName.endsWith(".cache");
-
-            if (currentFile.isFile() && isTemporary) {
-
-                long fileSize = currentFile.length();
-
-                boolean deleted = currentFile.delete();
-
-                if (deleted) {
-                    removedFiles++;
-                    totalFreedSpace += fileSize;
-                } else {
-                    skippedFiles++;
+        for (File f : files) {
+            if (f.isFile()) {
+                String n = f.getName().toLowerCase();
+                if (n.endsWith(".tmp") || n.endsWith(".log") ||
+                    n.endsWith(".cache") || n.endsWith(".bak")||
+                    n.endsWith(".xml")||n.endsWith(".png")) {
+                    count++;
                 }
             }
         }
 
-        System.out.println("[RESULT] Files Removed: " + removedFiles);
-        System.out.println("[RESULT] Files Skipped: " + skippedFiles);
-        System.out.println("[RESULT] Space Freed: " + (totalFreedSpace / 1024) + " KB");
+        File[] result = new File[count];
+        int i = 0;
+
+        for (File f : files) {
+            if (f.isFile()) {
+                String n = f.getName().toLowerCase();
+                if (n.endsWith(".tmp") || n.endsWith(".log") ||
+                    n.endsWith(".cache") || n.endsWith(".bak")||
+                    n.endsWith(".xml")||n.endsWith(".png")) {
+                    result[i++] = f;
+                }
+            }
+        }
+
+        if (count > 0) new FilePreviewFrameArray(result);
     }
 }

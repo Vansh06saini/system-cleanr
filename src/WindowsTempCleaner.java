@@ -4,46 +4,62 @@ public class WindowsTempCleaner {
 
     public static void clean() {
 
-        System.out.println("[INFO] Starting Windows Temp Cleanup...");
+        String path = System.getenv("SystemRoot") + "\\Temp";
 
-        String tempPath = "C:\\Windows\\Temp";
-
-        File tempFolder = new File(tempPath);
-        File[] files = tempFolder.listFiles();
+        File folder = new File(path);
+        File[] files = folder.listFiles();
 
         if (files == null) {
-            System.out.println("[ERROR] Cannot access Windows Temp folder.");
             return;
         }
 
-        int deletedCount = 0;
-        int skippedCount = 0;
-        long freedSpace = 0;
+        int count = 0;
 
-        for (File file : files) {
+        for (File f : files) {
 
-            // Only process normal files (skip folders for safety)
-            if (file.isFile()) {
+            if (f.isFile()) {
 
-                try {
-                    long fileSize = file.length();
+                String name = f.getName().toLowerCase();
 
-                    // Try deleting file
-                    if (file.delete()) {
-                        deletedCount++;
-                        freedSpace += fileSize;
-                    } else {
-                        skippedCount++; // file in use / permission issue
-                    }
-
-                } catch (Exception e) {
-                    skippedCount++;
+                if (isJunk(name)) {
+                    count++;
                 }
             }
         }
 
-        System.out.println("[RESULT] Files Deleted: " + deletedCount);
-        System.out.println("[RESULT] Files Skipped: " + skippedCount);
-        System.out.println("[RESULT] Space Freed: " + (freedSpace / 1024) + " KB");
+        File[] junkFiles = new File[count];
+
+        int index = 0;
+
+        for (File f : files) {
+
+            if (f.isFile()) {
+
+                String name = f.getName().toLowerCase();
+
+                if (isJunk(name)) {
+                    junkFiles[index++] = f;
+                }
+            }
+        }
+        if (count > 0) {
+            new FilePreviewFrameArray(junkFiles);
+        }
+    }
+
+    static boolean isJunk(String name) {
+
+        return name.endsWith(".tmp") ||
+               name.endsWith(".log") ||
+               name.endsWith(".cache") ||
+
+               
+               (name.endsWith(".txt") &&
+               (
+                   name.contains("temp") ||
+                   name.contains("log") ||
+                   name.contains("laptop") ||   // system-generated files
+                   name.matches(".*\\d{8}.*")   // contains date pattern
+               ));
     }
 }
